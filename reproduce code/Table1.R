@@ -1,5 +1,9 @@
-## make sure to set the directory correctly 
-setwd("C:/Users/wfu/Desktop/biostatistics/code")
+######################################################
+## make sure to first load the necessary source code in the 
+## "source code" file before running code below.
+## If you are not sure which source code to load,
+## load all of them just to be safe. 
+######################################################
 
 ####=======================================================================
 getUsefulPredictors <- function(x) {
@@ -15,90 +19,105 @@ getPositions <-function(x){
       names(varid)
 }
 ####=======================================================================
+library(survival)
 library(partykit)
 library(rpart)
-library(survival)
-source("rpart_LTRC.R")
+source("rpart_LTRC_noprune.R")
 source("LTRC_ctree.R")
-source("LTRC_structure_grt.r")
+source("bias_test_grnt.R")
 
-Struct_recover <- function(N = 200, distribution = "Exponential", Ctype = 1, Trunc = 2){
+bias_test <- function(N=200, distribution = "Weibull", censor.rate = 1){
+
 	set.seed(1)
 
-	Count.ctree = 0 
-	Count.rpart = 0
+	Ctree.1 = 0
+	Ctree.2 = 0
+	Ctree.3 = 0
+	Ctree.4 = 0
+	Ctree.5 = 0
+
+	Rtree.1 = 0
+	Rtree.2 = 0
+	Rtree.3 = 0
+	Rtree.4 = 0
+	Rtree.5 = 0
+
+	for(W in 1:10000){
+		
+		DATA1 <- bias.test.gnrt(n=N, Dist = distribution, Ctype = censor.rate)
+
+	    	Ctree <- LTRC_ctree(Surv(Start,Obs, Event) ~ X1+X2+X3+X4+X5, DATA1, Control = ctree_control(mincriterion = 0,maxdepth=1))
+
+		if( length(Ctree)!=3 || width(Ctree)!=2 ){
+			stop("No root split returned for LTRC_ctree");
+		}else{
+			Varable = getUsefulPredictors(Ctree)
+
+			if(Varable == "X1"){
+				Ctree.1 = Ctree.1 + 1
+			} else if(Varable == "X2"){
+				Ctree.2 = Ctree.2 + 1
+			} else if(Varable == "X3"){
+				Ctree.3 = Ctree.3 + 1
+			} else if(Varable == "X4"){
+				Ctree.4 = Ctree.4 + 1
+			} else if(Varable == "X5"){
+				Ctree.5 = Ctree.5 + 1
+			} 
+		}
+
+		Rtree <- rpart.LTRC(Surv(Start,Obs, Event) ~ X1+X2+X3+X4+X5, DATA1, control = rpart.control(cp=0,maxdepth=1))
+
+		if( length(unique(Rtree$where))!=2 ){
+			stop("No root split returned for LTRC_rpart");
+		}else{
+			if(Rtree$frame$var[1]=="X1"){
+				Rtree.1 = Rtree.1 + 1;
+			}else if(Rtree$frame$var[1]=="X2"){
+				Rtree.2 = Rtree.2 + 1;
+			}else if(Rtree$frame$var[1]=="X3"){
+				Rtree.3 = Rtree.3 + 1;
+			}else if(Rtree$frame$var[1]=="X4"){
+				Rtree.4 = Rtree.4 + 1;
+			}else if(Rtree$frame$var[1]=="X5"){
+				Rtree.5 = Rtree.5 + 1;
+			}
+		}
+
+	}##end of for loop
 	
-	for(W in 1:1000){
-		DATA <- LTRC.generate(n = N, Dist = distribution, censor.type = Ctype, truncation = Trunc)
-
-		Tree.ctree <- LTRC_ctree(Surv(Start,Obs,Event)~X1+X2+X3+X4+X5+X6, DATA)
-		Tree.rpart <- rpart.LTRC(Surv(Start,Obs,Event)~X1+X2+X3+X4+X5+X6, DATA)
-
-		#check if LTRC ctree is correct 
-		if( !(FALSE %in% (getPositions(Tree.ctree)== c("1","2","5"))) ){
-			if( sum(getUsefulPredictors(Tree.ctree) == c("X1","X2","X3"))==3 ){
-				if(length(Tree.ctree)==7 && width(Tree.ctree)==4 ){
-					Count.ctree = Count.ctree + 1;
-				}
-			}
-		}
-
-	      #check if LTRC rpart is correct 
-		if(Tree.rpart$frame$var[1]=="X1"){
-			if(Tree.rpart$frame$var[2]=="X2"){
-				if(Tree.rpart$frame$var[5]=="X3"){
-					if(length(unique(Tree.rpart$where))==4){
-						Count.rpart = Count.rpart + 1;
-					}
-				}
-			}
-		}
-	}##end of loop
-	result <- c(Count.ctree, Count.rpart)
+	result <- list( C.split = c(Ctree.1,Ctree.2,Ctree.3,Ctree.4,Ctree.5), R.split=c(Rtree.1,Rtree.2,Rtree.3,Rtree.4,Rtree.5))
 	return(result)
 }
-
-###################=========================================================================
-########## Code below only gives the N=300 result,
-########## Change N=100 and N=500 to get the complete result.
-########## Note that it gives the row counts out of 1000 trials. Divide by 10 
-########## to get the percentage as in the paper.
-########## Ctype=1 means light censoring, while Ctype = 2 means heavy censoring
-########## Trunc = 1 means the truncation time has U[0,1] distribution
-########## Trunc = 3 means the truncation time has U[0,3] distribution
-
-Exp.1.1 <- Struct_recover(N = 300, distribution = "Exponential", Ctype = 1, Trunc = 1)
-Exp.2.1 <- Struct_recover(N = 300, distribution = "Exponential", Ctype = 2, Trunc = 1)
-Exp.1.2 <- Struct_recover(N = 300, distribution = "Exponential", Ctype = 1, Trunc = 2)
-Exp.2.2 <- Struct_recover(N = 300, distribution = "Exponential", Ctype = 2, Trunc = 2)
-Exp.1.3 <- Struct_recover(N = 300, distribution = "Exponential", Ctype = 1, Trunc = 3)
-Exp.2.3 <- Struct_recover(N = 300, distribution = "Exponential", Ctype = 2, Trunc = 3)
-
-WebI.1.1 <- Struct_recover(N = 300, distribution = "Weibull-I", Ctype = 1, Trunc = 1)
-WebI.2.1 <- Struct_recover(N = 300, distribution = "Weibull-I", Ctype = 2, Trunc = 1)
-WebI.1.2 <- Struct_recover(N = 300, distribution = "Weibull-I", Ctype = 1, Trunc = 2)
-WebI.2.2 <- Struct_recover(N = 300, distribution = "Weibull-I", Ctype = 2, Trunc = 2)
-WebI.1.3 <- Struct_recover(N = 300, distribution = "Weibull-I", Ctype = 1, Trunc = 3)
-WebI.2.3 <- Struct_recover(N = 300, distribution = "Weibull-I", Ctype = 2, Trunc = 3)
+#############################################################################
+######## censor.rate = 1 means light censoring 
+######## censor.rate = 2 means heavy censoring 
 
 
-WebD.1.1 <- Struct_recover(N = 300, distribution = "Weibull-D", Ctype = 1, Trunc = 1)
-WebD.2.1 <- Struct_recover(N = 300, distribution = "Weibull-D", Ctype = 2, Trunc = 1)
-WebD.1.2 <- Struct_recover(N = 300, distribution = "Weibull-D", Ctype = 1, Trunc = 2)
-WebD.2.2 <- Struct_recover(N = 300, distribution = "Weibull-D", Ctype = 2, Trunc = 2)
-WebD.1.3 <- Struct_recover(N = 300, distribution = "Weibull-D", Ctype = 1, Trunc = 3)
-WebD.2.3 <- Struct_recover(N = 300, distribution = "Weibull-D", Ctype = 2, Trunc = 3)
+Exp1 <- bias_test(N = 200, distribution = "Exponential", censor.rate = 1)
+Exp2 <- bias_test(N = 200, distribution = "Exponential", censor.rate = 2)
+Log1 <- bias_test(N = 200, distribution = "Lognormal", censor.rate = 1)
+Log2 <- bias_test(N = 200, distribution = "Lognormal", censor.rate = 2)
+Web1 <- bias_test(N = 200, distribution = "Weibull", censor.rate = 1)
+Web2 <- bias_test(N = 200, distribution = "Weibull", censor.rate = 2)
 
-Log.1.1 <- Struct_recover(N = 300, distribution = "Lognormal", Ctype = 1, Trunc = 1)
-Log.2.1 <- Struct_recover(N = 300, distribution = "Lognormal", Ctype = 2, Trunc = 1)
-Log.1.2 <- Struct_recover(N = 300, distribution = "Lognormal", Ctype = 1, Trunc = 2)
-Log.2.2 <- Struct_recover(N = 300, distribution = "Lognormal", Ctype = 2, Trunc = 2)
-Log.1.3 <- Struct_recover(N = 300, distribution = "Lognormal", Ctype = 1, Trunc = 3)
-Log.2.3 <- Struct_recover(N = 300, distribution = "Lognormal", Ctype = 2, Trunc = 3)
+####====Comduct the Chi-sqaure test======
+### C.split is the LTRCIT result
+### R.split is the LTRCART result
+####================================
 
-Bath.1.1 <- Struct_recover(N = 300, distribution = "Bathtub", Ctype = 1, Trunc = 1)
-Bath.2.1 <- Struct_recover(N = 300, distribution = "Bathtub", Ctype = 2, Trunc = 1)
-Bath.1.2 <- Struct_recover(N = 300, distribution = "Bathtub", Ctype = 1, Trunc = 2)
-Bath.2.2 <- Struct_recover(N = 300, distribution = "Bathtub", Ctype = 2, Trunc = 2)
-Bath.1.3 <- Struct_recover(N = 300, distribution = "Bathtub", Ctype = 1, Trunc = 3)
-Bath.2.3 <- Struct_recover(N = 300, distribution = "Bathtub", Ctype = 2, Trunc = 3)
+chisq.test(Exp1$C.split,p = rep(1/5, 5))
+chisq.test(Exp1$R.split,p = rep(1/5, 5))
+chisq.test(Exp2$C.split,p = rep(1/5, 5))
+chisq.test(Exp2$R.split,p = rep(1/5, 5))
+
+chisq.test(Log1$C.split,p = rep(1/5, 5))
+chisq.test(Log1$R.split,p = rep(1/5, 5))
+chisq.test(Log2$C.split,p = rep(1/5, 5))
+chisq.test(Log2$R.split,p = rep(1/5, 5))
+
+chisq.test(Web1$C.split,p = rep(1/5, 5))
+chisq.test(Web1$R.split,p = rep(1/5, 5))
+chisq.test(Web2$C.split,p = rep(1/5, 5))
+chisq.test(Web2$R.split,p = rep(1/5, 5))
+

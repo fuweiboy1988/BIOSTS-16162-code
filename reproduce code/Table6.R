@@ -1,5 +1,9 @@
-## make sure to set the directory correctly 
-setwd("C:/Users/wfu/Desktop/biostatistics/code")
+######################################################
+## make sure to first load the necessary source code in the 
+## "source code" file before running code below.
+## If you are not sure which source code to load,
+## load all of them just to be safe. 
+######################################################
 
 ####=======================================================================
 getUsefulPredictors <- function(x) {

@@ -1,6 +1,10 @@
-## make sure to set the directory correctly 
-## i.e. directory contains the "bathtub.R" source code
-setwd("C:/Users/wfu/Desktop/biostatistics/code")
+######################################################
+## make sure to first load the necessary source code in the 
+## "source code" file before running code below.
+## If you are not sure which source code to load,
+## load all of them just to be safe. 
+######################################################
+
 source("bathtub.R")
 
 set.seed(1)

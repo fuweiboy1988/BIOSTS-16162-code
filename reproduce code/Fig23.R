@@ -144,6 +144,7 @@ Pred_TV <- function(n=300, Dist = "Exponential", Jumptype = 1, Ctype = 1, Var = 
 ###=======================================================================#####
 ###=======================================================================#####
 ### Code below gives the IBS boxplot with binary X2, dichotomous I with n=100
+### i.e.  Figure SM23
 ###=======================================================================#####
 Exp.0.100 <- Pred_TV(n=100, Dist = "Exponential", Jumptype = 1, Ctype = 0)
 Exp.1.100 <- Pred_TV(n=100, Dist = "Exponential", Jumptype = 1, Ctype = 1)

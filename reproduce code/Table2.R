@@ -63,7 +63,7 @@ Struct_recover <- function(N = 200, distribution = "Exponential", Ctype = 1, Tru
 }
 
 ###################=========================================================================
-########## Code below only gives the N=300 result,
+########## Code below only gives the N=300 result in Table SM2 
 ########## Change N=100 and N=500 to get the complete result.
 ########## Note that it gives the row counts out of 1000 trials. Divide by 10 
 ########## to get the percentage as in the paper.

@@ -125,7 +125,7 @@ struct_recover <- function(n = 200, Dist = "Exponential", Jumptype = 1, Ctype = 
 ### Ctype = 0 means no censoring, Ctype = 1 means 20% censoring, and
 ###  Ctype = 0 means 50% censoring
 ###################=========================================================================
-### Code below gives the results for sample size n=100 in type II case
+### Code below gives the results for sample size n=100 in type II case, i.e Table SM7
 ### Note that it gives the raw counts out of 1000 trials, divide by 10 
 ### to get the percentage rate report in paper
 ####################################################################################

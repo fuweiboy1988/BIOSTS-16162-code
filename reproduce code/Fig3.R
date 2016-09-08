@@ -304,7 +304,9 @@ Log.1.3 <- Pred_LTRC(N = 300, distribution = "Lognormal", C.rate = 1, Trunc.max 
 Log.2.3 <- Pred_LTRC(N = 300, distribution = "Lognormal", C.rate= 2, Trunc.max = 3, model = 1)
 
 
-###==========================PLOT Fig.3 in paper=======================================
+###==========================Plot Fig SM3-SM20 in paper=======================================
+### Code below plots Fig SM5 
+###################################################################################
 
 pdf("BS_light_300.pdf", width=10)
 

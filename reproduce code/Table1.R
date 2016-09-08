@@ -101,6 +101,14 @@ Log2 <- bias_test(N = 200, distribution = "Lognormal", censor.rate = 2)
 Web1 <- bias_test(N = 200, distribution = "Weibull", censor.rate = 1)
 Web2 <- bias_test(N = 200, distribution = "Weibull", censor.rate = 2)
 
+
+###==================Results in Table SM1 ===================
+Exp1
+Exp2
+Web1
+Web2
+Log1
+Log2
 ####====Comduct the Chi-sqaure test======
 ### C.split is the LTRCIT result
 ### R.split is the LTRCART result
